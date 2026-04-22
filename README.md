@@ -48,6 +48,8 @@ Reemplazar `VERSION` por el tag del release deseado (ej. `v1.0.0`) o por un comm
 Crear una instancia de `OpenXpandConfig` con los datos del cliente OAuth2:
 
 ```kotlin
+import com.openxpand.sdk.OpenXpandConfig
+
 val config = OpenXpandConfig(
     clientId = "mi-client-id",
     tenant = "telecom",                  // realm/tenant del servidor de auth
@@ -81,6 +83,8 @@ No se configuran desde la app:
 ## Inicialización
 
 ```kotlin
+import com.openxpand.sdk.OpenXpandAuth
+
 val auth = OpenXpandAuth(
     context = applicationContext,
     config = config
@@ -110,6 +114,8 @@ El SDK **solo** realiza el **GET** al endpoint de autorización (IP+puerto, cell
 Los métodos `authorize*` obtienen el code y el PKCE `code_verifier`:
 
 ```kotlin
+import com.openxpand.sdk.AuthorizationResult
+
 // IP + Puerto
 val authzResult = auth.authorizeViaIpPort()
 
