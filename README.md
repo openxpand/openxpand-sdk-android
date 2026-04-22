@@ -89,7 +89,7 @@ val auth = OpenXpandAuth(
 
 ## Métodos de autenticación
 
-El SDK ofrece 3 métodos para identificar al suscriptor:
+El SDK ofrece 2 métodos para identificar al suscriptor:
 
 ### 1. IP + Puerto (HTTPS)
 
