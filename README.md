@@ -37,7 +37,7 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.openxpand:openxpand-android-sdk-auth:VERSION")
+    implementation("com.github.openxpand:openxpand-sdk-android:VERSION")
 }
 ```
 

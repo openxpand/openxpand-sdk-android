@@ -50,8 +50,6 @@ afterEvaluate {
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
-                groupId = "com.github.openxpand"
-                artifactId = "openxpand-android-sdk-auth"
             }
         }
     }
