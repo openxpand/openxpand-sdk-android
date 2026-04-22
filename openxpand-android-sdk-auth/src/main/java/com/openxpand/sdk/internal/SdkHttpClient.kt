@@ -1,6 +1,5 @@
 package com.openxpand.sdk.internal
 
-import com.openxpand.sdk.auth.BuildConfig
 import java.util.concurrent.atomic.AtomicBoolean
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,7 +14,7 @@ internal object SdkHttpClient {
     /** Evita filtrar `client_secret` en cuerpos form-url-encoded logueados en debug. */
     private val redactClientSecret = Regex("(client_secret=)[^&\\s]+")
 
-    private fun loggingEnabled(): Boolean = BuildConfig.DEBUG || forceHttpLogging
+    private fun loggingEnabled(): Boolean = forceHttpLogging
 
     private fun redactForLog(message: String): String =
         message.replace(redactClientSecret) { "${it.groupValues[1]}██" }
