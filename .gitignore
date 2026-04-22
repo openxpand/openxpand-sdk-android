@@ -1,0 +1,20 @@
+# Local
+local.properties
+*.iml
+.DS_Store
+
+# Android build
+build/
+*/build/
+.gradle/
+*/.gradle/
+
+# IDE
+.idea/
+*.iws
+*.ipr
+
+# Credentials
+keystore.properties
+*.jks
+*.keystore
