@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.openxpand.sdk"
+    namespace = "com.openxpand.sdk.auth"
     compileSdk = 34
 
     defaultConfig {

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "openxpand-sdk"
-include(":sdk")
+rootProject.name = "openxpand-sdk-android"
+include(":openxpand-android-sdk-auth")

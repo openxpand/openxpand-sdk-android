@@ -1,4 +1,14 @@
-# OpenXpand SDK — Manual de integración
+# openxpand-sdk-android
+
+Colección de módulos SDK para Android de OpenXpand.
+
+| Módulo | Descripción |
+|--------|-------------|
+| `openxpand-android-sdk-auth` | Autenticación de suscriptores móviles via OAuth2 + PKCE (RFC 7636) |
+
+---
+
+## openxpand-android-sdk-auth
 
 SDK Android para autenticación de suscriptores móviles mediante el protocolo OAuth2 con PKCE (RFC 7636). Soporta múltiples métodos de identificación del suscriptor y permite elegir si el token exchange se hace desde la app o desde un backend.
 
@@ -27,7 +37,7 @@ dependencyResolutionManagement {
 ```kotlin
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.openxpand:openxpand-sdk:VERSION")
+    implementation("com.github.openxpand:openxpand-android-sdk-auth:VERSION")
 }
 ```
 
