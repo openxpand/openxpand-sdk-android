@@ -2,7 +2,6 @@ package com.openxpand.sdk
 
 import android.content.Context
 import com.openxpand.sdk.cellular.CellularRequestManager
-import com.openxpand.sdk.otp.OtpManager
 import com.openxpand.sdk.pkce.PkceGenerator
 import com.openxpand.sdk.internal.SdkHttpClient
 import com.openxpand.sdk.silent.SilentLoginManager
@@ -14,7 +13,6 @@ class OpenXpandAuth(
 
     private val silentLoginManager = SilentLoginManager(config)
     private val cellularRequestManager = CellularRequestManager(context, config)
-    private val otpManager = OtpManager(context, config)
 
     // ──────────────────────────────────────────────────────────────
     //  Authorization-only methods (return code + verifier)
@@ -73,27 +71,6 @@ class OpenXpandAuth(
                 "Cellular: ${(cellularResult as AuthorizationResult.Error).message}. " +
                 "IP+Port: ${(ipPortResult as AuthorizationResult.Error).message}."
         )
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    //  OTP (endpoints propios; no usa el GET /auth estándar)
-    // ──────────────────────────────────────────────────────────────
-
-    /**
-     * Full flow: OTP via SMS (WiFi-friendly). Sends a one-time password
-     * to the given phone number and validates it to obtain tokens.
-     */
-    suspend fun authenticateViaOtp(phoneNumber: String?): AuthResult {
-        if (phoneNumber.isNullOrBlank()) {
-            return AuthResult.Error(
-                "Phone number is required for OTP authentication"
-            )
-        }
-        return try {
-            otpManager.authenticate(phoneNumber)
-        } catch (e: Exception) {
-            AuthResult.Error("OTP authentication failed: ${e.message}", e)
-        }
     }
 
     companion object {

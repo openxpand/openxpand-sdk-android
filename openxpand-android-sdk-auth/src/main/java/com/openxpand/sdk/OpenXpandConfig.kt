@@ -23,9 +23,7 @@ data class OpenXpandConfig(
      * Base del gateway (p. ej. intercambio de tokens). Las peticiones GET de autorización usan
      * [OpenXpandDefaults] (auth HTTPS y celular HTTP).
      */
-    val baseGatewayUrl: String = "https://opengw.openxpand.com",
-    val otpSendEndpoint: String = "",
-    val otpValidateEndpoint: String = ""
+    val baseGatewayUrl: String = "https://opengw.openxpand.com"
 ) {
     val authEndpoint: String
         get() =

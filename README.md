@@ -64,8 +64,6 @@ val config = OpenXpandConfig(
 |-----------|---------|-------------|
 | `clientSecret` | `""` | Solo si el cliente es confidential y el token exchange lo hace código que puede usar el secret. |
 | `baseGatewayUrl` | `https://opengw.openxpand.com` | Base del gateway; sirve para documentar el path del **POST /token** (`tokenEndpoint`). Las peticiones **GET /auth** usan URLs fijas en el SDK (`OpenXpandDefaults`). |
-| `otpSendEndpoint` | `""` | URL para enviar el OTP por SMS. |
-| `otpValidateEndpoint` | `""` | URL para validar el código OTP. |
 
 ### URLs fijas del SDK (`OpenXpandDefaults`)
 
@@ -100,10 +98,6 @@ Envía un request HTTPS al servidor de auth. El servidor identifica al suscripto
 ### 2. Cellular — Header Enrichment (HTTP)
 
 Fuerza el request por la red celular (incluso si hay WiFi). La telco intercepta el tráfico HTTP plano e inyecta un header encriptado que el servidor descifra para identificar al suscriptor.
-
-### 3. OTP por SMS
-
-Envía un código OTP por SMS al número del suscriptor y lo valida automáticamente usando la SMS Retriever API. Ideal para dispositivos conectados por WiFi.
 
 ---
 
@@ -158,16 +152,6 @@ grant_type=authorization_code
 
 ---
 
-## OTP por SMS (full-flow en el SDK)
-
-El flujo OTP usa endpoints configurados en `OpenXpandConfig` (`otpSendEndpoint` / `otpValidateEndpoint`) y sigue siendo un método de conveniencia que devuelve `AuthResult` con tokens:
-
-```kotlin
-val result = auth.authenticateViaOtp("+5411...")
-```
-
----
-
 ## Resumen de la API
 
 ### `OpenXpandAuth`
@@ -177,16 +161,11 @@ val result = auth.authenticateViaOtp("+5411...")
 | `authorize()` | `AuthorizationResult` | Intenta cellular y, si falla, IP+puerto. |
 | `authorizeViaIpPort()` | `AuthorizationResult` | Code vía IP+puerto (HTTPS). |
 | `authorizeViaCellular()` | `AuthorizationResult` | Code vía header enrichment (HTTP). |
-| `authenticateViaOtp(phoneNumber)` | `AuthResult` | OTP por SMS (flujo propio del SDK). |
 
 ### Tipos de resultado
 
-**`AuthorizationResult`** (solo code):
+**`AuthorizationResult`**:
 - `Success(authorizationCode: String, codeVerifier: String)`
-- `Error(message: String, cause: Throwable?)`
-
-**`AuthResult`** (tokens):
-- `Success(accessToken: String, tokenType: String, expiresIn: Long, refreshToken: String?)`
 - `Error(message: String, cause: Throwable?)`
 
 ---
@@ -215,4 +194,3 @@ El SDK incluye un `network_security_config.xml` que permite tráfico cleartext (
 |----------|---------|-----|
 | OkHttp | 4.12.0 | HTTP client |
 | Kotlin Coroutines Android | 1.7.3 | Async/suspend |
-| Play Services Auth API Phone | 18.0.2 | SMS Retriever API (OTP) |
