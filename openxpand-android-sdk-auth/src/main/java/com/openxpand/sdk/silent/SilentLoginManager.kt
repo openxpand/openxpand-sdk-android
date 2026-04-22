@@ -1,6 +1,5 @@
 package com.openxpand.sdk.silent
 
-import android.net.Uri
 import com.openxpand.sdk.OpenXpandConfig
 import com.openxpand.sdk.internal.SdkHttpClient
 import kotlinx.coroutines.Dispatchers
@@ -42,11 +41,11 @@ internal class SilentLoginManager(private val config: OpenXpandConfig) {
         val location = response.header("Location")
             ?: throw SilentLoginException("No Location header in redirect response")
 
-        val uri = Uri.parse(location)
-        val code = uri.getQueryParameter("code")
+        val redirectUrl = location.toHttpUrl()
+        val code = redirectUrl.queryParameter("code")
             ?: throw SilentLoginException(
                 "No authorization code in redirect URL. " +
-                    "Error: ${uri.getQueryParameter("error") ?: "unknown"}"
+                    "Error: ${redirectUrl.queryParameter("error") ?: "unknown"}"
             )
 
         code

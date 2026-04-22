@@ -1,6 +1,6 @@
 package com.openxpand.sdk.internal
 
-import com.openxpand.sdk.BuildConfig
+import com.openxpand.sdk.auth.BuildConfig
 import java.util.concurrent.atomic.AtomicBoolean
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.Uri
 import com.openxpand.sdk.OpenXpandConfig
 import com.openxpand.sdk.internal.SdkHttpClient
 import kotlinx.coroutines.Dispatchers
@@ -110,11 +109,11 @@ internal class CellularRequestManager(
         val location = response.header("Location")
             ?: throw CellularRequestException("No Location header in redirect response")
 
-        val uri = Uri.parse(location)
-        return uri.getQueryParameter("code")
+        val redirectUrl = location.toHttpUrl()
+        return redirectUrl.queryParameter("code")
             ?: throw CellularRequestException(
                 "No authorization code in redirect URL. " +
-                    "Error: ${uri.getQueryParameter("error") ?: "unknown"}"
+                    "Error: ${redirectUrl.queryParameter("error") ?: "unknown"}"
             )
     }
 
