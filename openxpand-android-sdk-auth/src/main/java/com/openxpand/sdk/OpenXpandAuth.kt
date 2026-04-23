@@ -36,10 +36,9 @@ class OpenXpandAuth(
     }
 
     /**
-     * Obtains an authorization code via cellular header enrichment (HTTP).
+     * Obtains an authorization code by identifying the subscriber via the cellular network.
      *
-     * Forces the request through the cellular network. The telecom injects
-     * an encrypted header that the auth server decrypts to identify the subscriber.
+     * Forces the request through the cellular network (HTTP), even if the device is on WiFi.
      *
      * Returns [AuthorizationResult.Success] with the `authorizationCode` and
      * `codeVerifier` that must be sent to a token endpoint to get tokens.
@@ -55,7 +54,7 @@ class OpenXpandAuth(
     }
 
     /**
-     * Tries cellular header enrichment first; if it fails, falls back
+     * Tries cellular identification first; if it fails, falls back
      * to IP+port identification. Returns the first successful result
      * or the last error if both fail.
      */

@@ -1,25 +1,25 @@
 # openxpand-sdk-android
 
-Colección de módulos SDK para Android de OpenXpand.
+Collection of Android SDK modules for OpenXpand.
 
-| Módulo | Descripción |
+| Module | Description |
 |--------|-------------|
-| `openxpand-android-sdk-auth` | Autenticación de suscriptores móviles via OAuth2 + PKCE (RFC 7636) |
+| `openxpand-android-sdk-auth` | Mobile subscriber authentication via OAuth2 + PKCE (RFC 7636) |
 
 ---
 
 ## openxpand-android-sdk-auth
 
-SDK Android para autenticación de suscriptores móviles mediante el protocolo OAuth2 con PKCE (RFC 7636). Soporta múltiples métodos de identificación del suscriptor y permite elegir si el token exchange se hace desde la app o desde un backend.
+Android SDK for authenticating mobile subscribers via OAuth2 with PKCE (RFC 7636). It supports multiple subscriber identification methods and lets you choose whether the token exchange is performed from the app or from a backend.
 
-## Requisitos
+## Requirements
 
 - Android `minSdk 26` (Android 8.0+)
 - Kotlin coroutines
 
-## Instalación
+## Installation
 
-### 1. Agregar el repositorio JitPack
+### 1. Add the JitPack repository
 
 ```kotlin
 // settings.gradle.kts
@@ -32,7 +32,7 @@ dependencyResolutionManagement {
 }
 ```
 
-### 2. Agregar la dependencia
+### 2. Add the dependency
 
 ```kotlin
 // app/build.gradle.kts
@@ -41,46 +41,46 @@ dependencies {
 }
 ```
 
-Reemplazar `VERSION` por el tag del release deseado (ej. `v1.0.0`) o por un commit hash.
+Replace `VERSION` with the desired release tag (e.g. `v1.0.0`) or a commit hash.
 
-## Configuración
+## Configuration
 
-Crear una instancia de `OpenXpandConfig` con los datos del cliente OAuth2:
+Create an `OpenXpandConfig` instance with the OAuth2 client data:
 
 ```kotlin
 import com.openxpand.sdk.OpenXpandConfig
 
 val config = OpenXpandConfig(
-    clientId = "mi-client-id",
-    tenant = "telecom",                  // realm/tenant del servidor de auth
-    redirectUri = "https://mi-app.com/callback"
+    clientId = "my-client-id",
+    tenant = "my-tenant",
+    redirectUri = "https://my-app.com/callback"
 )
 ```
 
-> **Nota:** El SDK no maneja `client_secret`. Si el cliente OAuth2 es confidential,
-> el secret debe manejarse exclusivamente en el backend que realiza el token exchange.
+> **Note:** The SDK does not handle `client_secret`. If the OAuth2 client is confidential,
+> the secret must be handled exclusively by the backend that performs the token exchange.
 
-### Parámetros opcionales
+### Optional parameters
 
-| Parámetro | Default | Descripción |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| `clientSecret` | `""` | Solo si el cliente es confidential y el token exchange lo hace código que puede usar el secret. |
-| `baseGatewayUrl` | `https://opengw.openxpand.com` | Base del gateway; sirve para documentar el path del **POST /token** (`tokenEndpoint`). Las peticiones **GET /auth** usan URLs fijas en el SDK (`OpenXpandDefaults`). |
+| `clientSecret` | `""` | Only if the client is confidential and the token exchange runs in code that can safely use the secret. |
+| `baseGatewayUrl` | `https://opengw.openxpand.com` | Gateway base; used to document the **POST /token** path (`tokenEndpoint`). The **GET /auth** requests use fixed URLs defined in the SDK (`OpenXpandDefaults`). |
 
-### URLs fijas del SDK (`OpenXpandDefaults`)
+### Fixed SDK URLs (`OpenXpandDefaults`)
 
-No se configuran desde la app:
+Not configurable from the app:
 
-- **Auth HTTPS (IP+puerto):** `https://auth.openxpand.com`
-- **Auth HTTP (celular / header enrichment):** `http://opengw.openxpand.com`
+- **Auth HTTPS (IP + port):** `https://auth.openxpand.com`
+- **Auth HTTP (cellular):** `http://opengw.openxpand.com`
 
-### Endpoints derivados
+### Derived endpoints
 
-- **Auth endpoint (silent / IP+puerto):** `{BASE_AUTH_HTTPS}/auth/realms/{tenant}/protocol/openid-connect/auth`
+- **Auth endpoint (IP + port):** `{BASE_AUTH_HTTPS}/auth/realms/{tenant}/protocol/openid-connect/auth`
 - **Cellular auth endpoint:** `{BASE_CELLULAR_HTTP}/auth/realms/{tenant}/protocol/openid-connect/auth`
-- **Token endpoint (referencia):** `{baseGatewayUrl}/auth/realms/{tenant}/protocol/openid-connect/token` — el intercambio de código lo implementa tu app o backend.
+- **Token endpoint (reference):** `{baseGatewayUrl}/auth/realms/{tenant}/protocol/openid-connect/token` — the code exchange is implemented by your app or backend.
 
-## Inicialización
+## Initialization
 
 ```kotlin
 import com.openxpand.sdk.OpenXpandAuth
@@ -91,36 +91,39 @@ val auth = OpenXpandAuth(
 )
 ```
 
-## Métodos de autenticación
+## Authentication methods
 
-El SDK ofrece 2 métodos para identificar al suscriptor:
+The SDK offers 2 methods to identify the subscriber:
 
-### 1. IP + Puerto (HTTPS)
+### 1. IP + Port (HTTPS)
 
-Envía un request HTTPS al servidor de auth. El servidor identifica al suscriptor por la IP y puerto de origen asignados por el operador móvil.
+Sends an HTTPS request to the auth server. The server identifies the subscriber by the **source IP and port** assigned by the mobile network.
 
-### 2. Cellular — Header Enrichment (HTTP)
+### 2. Cellular (HTTP)
 
-Fuerza el request por la red celular (incluso si hay WiFi). La telco intercepta el tráfico HTTP plano e inyecta un header encriptado que el servidor descifra para identificar al suscriptor.
+**Forces the request through the cellular network** (even if WiFi is available). The subscriber is identified via the cellular network itself.
 
 ---
 
-## Uso recomendado: autorización en el SDK, token fuera del SDK
+## Recommended usage: authorization in the SDK, token outside the SDK
 
-El SDK **solo** realiza el **GET** al endpoint de autorización (IP+puerto, cellular o ambos con `authorize()`). El **POST** al endpoint `/token` debe implementarlo tu app o tu backend: el SDK **no** incluye intercambio de código por tokens para el flujo OpenID estándar.
+The SDK **only** performs the **GET** to the authorization endpoint (IP + port, cellular, or both via `authorize()`). The **POST** to the `/token` endpoint must be implemented by your app or your backend: the SDK **does not** include code-for-token exchange for the standard OpenID flow.
 
-### Paso 1 — Obtener el authorization code (SDK)
+### Step 1 — Obtain the authorization code (SDK)
 
-Los métodos `authorize*` obtienen el code y el PKCE `code_verifier`:
+The `authorize*` methods return the code and the PKCE `code_verifier`:
 
 ```kotlin
 import com.openxpand.sdk.AuthorizationResult
 
-// IP + Puerto
+// IP + Port
 val authzResult = auth.authorizeViaIpPort()
 
 // Cellular
 val authzResult = auth.authorizeViaCellular()
+
+// Try cellular first, fall back to IP + port on failure
+val authzResult = auth.authorize()
 ```
 
 ```kotlin
@@ -128,7 +131,7 @@ when (authzResult) {
     is AuthorizationResult.Success -> {
         val code = authzResult.authorizationCode
         val codeVerifier = authzResult.codeVerifier
-        // Enviar code + codeVerifier al backend
+        // Send code + codeVerifier to the backend
     }
     is AuthorizationResult.Error -> {
         val message = authzResult.message
@@ -136,13 +139,13 @@ when (authzResult) {
 }
 ```
 
-### Paso 2 — Intercambiar el code por tokens (tu código)
+### Step 2 — Exchange the code for tokens (your code)
 
-Desde la app (OkHttp, Retrofit, etc.) o desde un backend: POST al token endpoint con `grant_type=authorization_code`, `code`, `client_id`, `redirect_uri`, `code_verifier` y, si aplica, `client_secret`.
+From the app (OkHttp, Retrofit, etc.) or from a backend: POST to the token endpoint with `grant_type=authorization_code`, `code`, `client_id`, `redirect_uri`, `code_verifier`, and `client_secret` if applicable.
 
-Ejemplo si el intercambio lo hace un **backend**:
+Example when the exchange is done by a **backend**:
 
-El backend recibe `code` y `code_verifier`, y hace el POST al token endpoint:
+The backend receives `code` and `code_verifier`, and issues the POST to the token endpoint:
 
 ```
 POST {baseGatewayUrl}/auth/realms/{tenant}/protocol/openid-connect/token
@@ -151,24 +154,24 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=authorization_code
 &code={authorization_code}
 &client_id={client_id}
-&client_secret={client_secret}    ← solo el backend lo conoce
+&client_secret={client_secret}    ← only the backend knows it
 &redirect_uri={redirect_uri}
 &code_verifier={code_verifier}
 ```
 
 ---
 
-## Resumen de la API
+## API summary
 
 ### `OpenXpandAuth`
 
-| Método | Retorna | Descripción |
+| Method | Returns | Description |
 |--------|---------|-------------|
-| `authorize()` | `AuthorizationResult` | Intenta cellular y, si falla, IP+puerto. |
-| `authorizeViaIpPort()` | `AuthorizationResult` | Code vía IP+puerto (HTTPS). |
-| `authorizeViaCellular()` | `AuthorizationResult` | Code vía header enrichment (HTTP). |
+| `authorize()` | `AuthorizationResult` | Tries cellular first; on failure falls back to IP + port. |
+| `authorizeViaIpPort()` | `AuthorizationResult` | Identifies the subscriber by **source IP and port** (HTTPS). |
+| `authorizeViaCellular()` | `AuthorizationResult` | Identifies the subscriber via the **cellular network**. Forces the request through cellular (HTTP), even if the device is on WiFi. |
 
-### Tipos de resultado
+### Result types
 
 **`AuthorizationResult`**:
 - `Success(authorizationCode: String, codeVerifier: String)`
@@ -176,9 +179,9 @@ grant_type=authorization_code
 
 ---
 
-## Permisos
+## Permissions
 
-El SDK declara los siguientes permisos en su manifest (se fusionan automáticamente):
+The SDK declares the following permissions in its manifest (merged automatically):
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
@@ -186,17 +189,17 @@ El SDK declara los siguientes permisos en su manifest (se fusionan automáticame
 <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 ```
 
-- `INTERNET` — para las peticiones HTTP/HTTPS.
-- `ACCESS_NETWORK_STATE` — para detectar el tipo de red (WiFi/móvil).
-- `CHANGE_NETWORK_STATE` — para forzar requests por la red celular.
+- `INTERNET` — for HTTP/HTTPS requests.
+- `ACCESS_NETWORK_STATE` — to detect the network type (WiFi/mobile).
+- `CHANGE_NETWORK_STATE` — to force requests through the cellular network.
 
-## Seguridad de red
+## Network security
 
-El SDK incluye un `network_security_config.xml` que permite tráfico cleartext (HTTP) hacia `*.openxpand.com`, necesario para el método de header enrichment celular. Esta configuración se fusiona automáticamente con el manifest de la app.
+The SDK includes a `network_security_config.xml` that allows cleartext (HTTP) traffic to `*.openxpand.com`, required by the cellular method. This configuration is merged automatically into the app manifest.
 
-## Dependencias
+## Dependencies
 
-| Librería | Versión | Uso |
-|----------|---------|-----|
+| Library | Version | Usage |
+|---------|---------|-------|
 | OkHttp | 4.12.0 | HTTP client |
 | Kotlin Coroutines Android | 1.7.3 | Async/suspend |
