@@ -177,7 +177,7 @@ Expected response:
 
 ```json
 {
-  "devicePhoneNumberVerified": false
+  "devicePhoneNumberVerified": true
 }
 ```
 
