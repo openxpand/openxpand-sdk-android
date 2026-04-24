@@ -159,6 +159,30 @@ grant_type=authorization_code
 &code_verifier={code_verifier}
 ```
 
+### Step 3 — Verify the phone number (Number Verification API)
+
+Once you have the `access_token`, call the **Number Verification** endpoint to validate that the phone number provided matches the one identified by the mobile network. This is the CAMARA *Number Verify* API: it confirms whether the supplied number is the device's number or not.
+
+```
+POST https://api.openxpand.com/api/camara/number-verification/v0/verify
+Authorization: Bearer {access_token}
+Content-Type: application/json
+
+{
+  "phoneNumber": "INPUT NUMBER"
+}
+```
+
+Expected response:
+
+```json
+{
+  "devicePhoneNumberVerified": false
+}
+```
+
+The `devicePhoneNumberVerified` field is `true` when the supplied `phoneNumber` matches the device's number, and `false` otherwise.
+
 ---
 
 ## API summary
