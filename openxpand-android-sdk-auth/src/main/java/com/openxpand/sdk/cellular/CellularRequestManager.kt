@@ -79,7 +79,7 @@ internal class CellularRequestManager(
                 }
             }
 
-            cm.requestNetwork(request, callback, NETWORK_TIMEOUT_MS)
+            cm.requestNetwork(request, callback, config.cellularNetworkTimeoutMs)
         }
 
     private fun sendAuthRequest(network: Network, codeChallenge: String): String {
@@ -125,9 +125,6 @@ internal class CellularRequestManager(
             )
     }
 
-    companion object {
-        private const val NETWORK_TIMEOUT_MS = 10_000
-    }
 }
 
 class CellularRequestException(message: String, cause: Throwable? = null) :

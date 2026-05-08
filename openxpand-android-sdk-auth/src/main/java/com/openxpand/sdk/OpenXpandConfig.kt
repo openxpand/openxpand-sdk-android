@@ -29,7 +29,14 @@ data class OpenXpandConfig(
      * Base URL for CAMARA APIs (SIM swap, number verification).
      * Override for staging or testing environments.
      */
-    val baseCamaraApiUrl: String = OpenXpandDefaults.BASE_CAMARA_API_URL
+    val baseCamaraApiUrl: String = OpenXpandDefaults.BASE_CAMARA_API_URL,
+    /**
+     * Timeout in ms to wait for the cellular network to become available.
+     * On some Android 10 devices (e.g. Samsung) the cellular radio can take
+     * longer than 10 s to wake from idle when WiFi is active.
+     * Increase to 20 000–30 000 on affected devices.
+     */
+    val cellularNetworkTimeoutMs: Int = 20_000
 ) {
     val authEndpoint: String
         get() =
