@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import com.openxpand.sdk.OpenXpandConfig
 import com.openxpand.sdk.internal.SdkHttpClient
 import kotlinx.coroutines.Dispatchers
@@ -44,9 +45,16 @@ internal class CellularRequestManager(
         suspendCancellableCoroutine { cont ->
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
+            // On Android 10 (API 29), when WiFi is active the system skips validating
+            // internet on the cellular network, so NET_CAPABILITY_INTERNET causes
+            // onUnavailable even though cellular is present. Fixed in Android 11+.
             val request = NetworkRequest.Builder()
                 .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .apply {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    }
+                }
                 .build()
 
             val callback = object : ConnectivityManager.NetworkCallback() {
