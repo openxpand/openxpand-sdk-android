@@ -87,7 +87,7 @@ internal class CellularRequestManager(
             .addQueryParameter("response_type", "code")
             .addQueryParameter("client_id", config.clientId)
             .addQueryParameter("redirect_uri", config.redirectUri)
-            .addQueryParameter("scope", "openid dpv:FraudPreventionAndDetection#number-verification")
+            .addQueryParameter("scope", "openid dpv:FraudPreventionAndDetection#number-verification dpv:FraudPreventionAndDetection#sim-swap")
             .addQueryParameter("code_challenge", codeChallenge)
             .addQueryParameter("code_challenge_method", "S256")
             .build()

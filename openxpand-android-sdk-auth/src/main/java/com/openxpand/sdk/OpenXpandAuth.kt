@@ -5,6 +5,8 @@ import com.openxpand.sdk.cellular.CellularRequestManager
 import com.openxpand.sdk.pkce.PkceGenerator
 import com.openxpand.sdk.internal.SdkHttpClient
 import com.openxpand.sdk.silent.SilentLoginManager
+import com.openxpand.sdk.camara.CamaraApiClient
+import com.openxpand.sdk.token.TokenExchanger
 
 class OpenXpandAuth(
     private val context: Context,
@@ -13,6 +15,8 @@ class OpenXpandAuth(
 
     private val silentLoginManager = SilentLoginManager(config)
     private val cellularRequestManager = CellularRequestManager(context, config)
+    private val tokenExchanger = TokenExchanger(config)
+    private val camaraApiClient = CamaraApiClient(config)
 
     // ──────────────────────────────────────────────────────────────
     //  Authorization-only methods (return code + verifier)
@@ -72,10 +76,67 @@ class OpenXpandAuth(
         )
     }
 
+    // ──────────────────────────────────────────────────────────────
+    //  Full-flow methods (authorize + token exchange in the device)
+    //  Convenient for testing. In production, prefer doing the token
+    //  exchange from a backend so client_secret never leaves the server.
+    // ──────────────────────────────────────────────────────────────
+
+    suspend fun authenticateViaIpPort(): AuthResult {
+        return when (val result = authorizeViaIpPort()) {
+            is AuthorizationResult.Success ->
+                tokenExchanger.exchange(result.authorizationCode, result.codeVerifier)
+            is AuthorizationResult.Error ->
+                AuthResult.Error(result.message, result.cause)
+        }
+    }
+
+    suspend fun authenticateViaCellular(): AuthResult {
+        return when (val result = authorizeViaCellular()) {
+            is AuthorizationResult.Success ->
+                tokenExchanger.exchange(result.authorizationCode, result.codeVerifier)
+            is AuthorizationResult.Error ->
+                AuthResult.Error(result.message, result.cause)
+        }
+    }
+
+    suspend fun authenticate(): AuthResult {
+        val cellularResult = authenticateViaCellular()
+        if (cellularResult is AuthResult.Success) return cellularResult
+
+        return authenticateViaIpPort()
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  CAMARA API — SIM Swap + Number Verification
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Verifies that [phoneNumber] belongs to the authenticated subscriber.
+     *
+     * First checks for a recent SIM swap. If the SIM was swapped ([NumberVerificationResult.SimSwapped]),
+     * the call is aborted to prevent SIM-swap fraud. Only when the SIM is stable does it proceed
+     * to confirm the phone number via the Number Verification API.
+     *
+     * @param accessToken Bearer token obtained from [authenticate] or your own token exchange.
+     * @param phoneNumber Phone number to verify (E.164 format recommended, e.g. "+5491112345678").
+     */
+    suspend fun verifyNumber(accessToken: String, phoneNumber: String): NumberVerificationResult {
+        return try {
+            val swapped = camaraApiClient.checkSimSwap(accessToken, phoneNumber)
+            if (swapped) return NumberVerificationResult.SimSwapped
+
+            val verified = camaraApiClient.verifyNumber(accessToken, phoneNumber)
+            NumberVerificationResult.Success(verified)
+        } catch (e: Exception) {
+            NumberVerificationResult.Error("Number verification failed: ${e.message}", e)
+        }
+    }
+
     companion object {
         /**
-         * Activa logging HTTP en Logcat (tag `OpenXpandHttp`) aunque el AAR no sea debug.
-         * Debe llamarse antes de crear la primera instancia de [OpenXpandAuth].
+         * Enables HTTP logging to Logcat (tag `OpenXpandHttp`) even when the AAR is not a debug build.
+         * Must be called before creating the first [OpenXpandAuth] instance.
          */
         @JvmStatic
         fun setHttpLoggingEnabled(enabled: Boolean) {

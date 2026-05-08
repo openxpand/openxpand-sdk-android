@@ -159,29 +159,71 @@ grant_type=authorization_code
 &code_verifier={code_verifier}
 ```
 
-### Step 3 — Verify the phone number (Number Verification API)
+### Alternative: full flow in the SDK (not recommended for production)
 
-Once you have the `access_token`, call the **Number Verification** endpoint to validate that the phone number provided matches the one identified by the mobile network. This is the CAMARA *Number Verify* API: it confirms whether the supplied number is the device's number or not.
+> **Warning:** The `authenticate*` methods perform the token exchange directly from the device.
+> This is convenient for prototyping and testing, but **do not use in production** if your client is
+> confidential: a `clientSecret` embedded in an APK can be extracted and abused. For production,
+> keep Step 2 in a backend.
 
-```
-POST https://api.openxpand.com/api/camara/number-verification/v0/verify
-Authorization: Bearer {access_token}
-Content-Type: application/json
+If you still choose to use the in-SDK exchange (e.g. public client with PKCE only):
 
-{
-  "phoneNumber": "INPUT NUMBER"
+```kotlin
+import com.openxpand.sdk.AuthResult
+
+// Try cellular first, fall back to IP + port
+val result = auth.authenticate()
+
+// Or pick a specific method:
+// val result = auth.authenticateViaIpPort()
+// val result = auth.authenticateViaCellular()
+
+when (result) {
+    is AuthResult.Success -> {
+        val accessToken = result.accessToken
+        // Use accessToken to call Number Verification or any protected API
+    }
+    is AuthResult.Error -> {
+        val message = result.message
+    }
 }
 ```
 
-Expected response:
+---
 
-```json
-{
-  "devicePhoneNumberVerified": true
+### Step 3 — Verify the phone number (SIM Swap + Number Verification)
+
+Once you have the `access_token`, call `verifyNumber()`. The SDK runs two CAMARA APIs in sequence:
+
+1. **SIM Swap check** — detects whether the SIM was recently swapped (fraud signal).
+   - `POST https://api.openxpand.com/api/camara/sim-swap/v0/check`
+   - Response: `{ "swapped": true | false }`
+2. **Number Verification** — confirms the phone number belongs to the authenticated subscriber. Only executed when `swapped = false`.
+   - `POST https://api.openxpand.com/api/camara/number-verification/v0/verify`
+   - Response: `{ "devicePhoneNumberVerified": true | false }`
+
+```kotlin
+import com.openxpand.sdk.NumberVerificationResult
+
+when (val result = auth.verifyNumber(accessToken, phoneNumber = "+5491112345678")) {
+    is NumberVerificationResult.Success -> {
+        if (result.verified) {
+            // Phone number confirmed — authentication complete
+        } else {
+            // Number does not match — reject
+        }
+    }
+    is NumberVerificationResult.SimSwapped -> {
+        // SIM was recently swapped — treat as authentication failure
+        // Do NOT proceed; possible SIM-swap fraud
+    }
+    is NumberVerificationResult.Error -> {
+        val message = result.message
+    }
 }
 ```
 
-The `devicePhoneNumberVerified` field is `true` when the supplied `phoneNumber` matches the device's number, and `false` otherwise.
+> `verifyNumber()` accepts any `accessToken` — whether obtained via `authenticate()` (full SDK flow) or your own backend token exchange.
 
 ---
 
@@ -189,16 +231,43 @@ The `devicePhoneNumberVerified` field is `true` when the supplied `phoneNumber` 
 
 ### `OpenXpandAuth`
 
+#### Authorization only (code + verifier — exchange done by caller)
+
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `authorize()` | `AuthorizationResult` | Tries cellular first; on failure falls back to IP + port. |
 | `authorizeViaIpPort()` | `AuthorizationResult` | Identifies the subscriber by **source IP and port** (HTTPS). |
 | `authorizeViaCellular()` | `AuthorizationResult` | Identifies the subscriber via the **cellular network**. Forces the request through cellular (HTTP), even if the device is on WiFi. |
 
+#### Full flow (authorize + token exchange in the device)
+
+> Not recommended for production with confidential clients. See [Alternative: full flow in the SDK](#alternative-full-flow-in-the-sdk-not-recommended-for-production).
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `authenticate()` | `AuthResult` | Tries cellular first; on failure falls back to IP + port. Returns access token. |
+| `authenticateViaIpPort()` | `AuthResult` | Full flow via IP + port. |
+| `authenticateViaCellular()` | `AuthResult` | Full flow via cellular network. |
+
 ### Result types
 
-**`AuthorizationResult`**:
+**`AuthorizationResult`** (authorization step only):
 - `Success(authorizationCode: String, codeVerifier: String)`
+- `Error(message: String, cause: Throwable?)`
+
+**`AuthResult`** (full flow including token exchange):
+- `Success(accessToken: String, tokenType: String, expiresIn: Long, refreshToken: String?)`
+- `Error(message: String, cause: Throwable?)`
+
+#### CAMARA verification
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `verifyNumber(accessToken, phoneNumber)` | `NumberVerificationResult` | Checks SIM swap first; if stable, verifies the phone number. |
+
+**`NumberVerificationResult`**:
+- `Success(verified: Boolean)` — `verified = true` means the number matches the subscriber
+- `SimSwapped` — SIM was recently swapped; treat as authentication failure
 - `Error(message: String, cause: Throwable?)`
 
 ---
