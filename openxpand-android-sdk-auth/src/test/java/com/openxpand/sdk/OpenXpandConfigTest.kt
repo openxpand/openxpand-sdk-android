@@ -59,6 +59,40 @@ class OpenXpandConfigTest {
     }
 
     @Test
+    fun `simSwapEndpoint uses default CAMARA base URL`() {
+        assertEquals(
+            "https://api.openxpand.com/api/camara/sim-swap/v0/check",
+            config.simSwapEndpoint
+        )
+    }
+
+    @Test
+    fun `numberVerificationEndpoint uses default CAMARA base URL`() {
+        assertEquals(
+            "https://api.openxpand.com/api/camara/number-verification/v0/verify",
+            config.numberVerificationEndpoint
+        )
+    }
+
+    @Test
+    fun `simSwapEndpoint uses custom baseCamaraApiUrl`() {
+        val custom = config.copy(baseCamaraApiUrl = "https://staging.api.openxpand.com")
+        assertEquals(
+            "https://staging.api.openxpand.com/api/camara/sim-swap/v0/check",
+            custom.simSwapEndpoint
+        )
+    }
+
+    @Test
+    fun `numberVerificationEndpoint strips trailing slash from baseCamaraApiUrl`() {
+        val custom = config.copy(baseCamaraApiUrl = "https://api.openxpand.com/")
+        assertEquals(
+            "https://api.openxpand.com/api/camara/number-verification/v0/verify",
+            custom.numberVerificationEndpoint
+        )
+    }
+
+    @Test
     fun `endpoints reflect tenant change`() {
         val other = config.copy(tenant = "telecom")
         assertEquals(

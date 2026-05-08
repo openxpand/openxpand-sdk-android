@@ -24,7 +24,12 @@ data class OpenXpandConfig(
      * Gateway base URL (e.g. for token exchange). Authorization GET requests use
      * the fixed URLs in [OpenXpandDefaults] (auth HTTPS and cellular HTTP).
      */
-    val baseGatewayUrl: String = "https://opengw.openxpand.com"
+    val baseGatewayUrl: String = "https://opengw.openxpand.com",
+    /**
+     * Base URL for CAMARA APIs (SIM swap, number verification).
+     * Override for staging or testing environments.
+     */
+    val baseCamaraApiUrl: String = OpenXpandDefaults.BASE_CAMARA_API_URL
 ) {
     val authEndpoint: String
         get() =
@@ -38,8 +43,8 @@ data class OpenXpandConfig(
         get() = "${baseGatewayUrl.trimEnd('/')}/auth/realms/$tenant/protocol/openid-connect/token"
 
     val simSwapEndpoint: String
-        get() = "${OpenXpandDefaults.BASE_CAMARA_API_URL}/api/camara/sim-swap/v0/check"
+        get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/sim-swap/v0/check"
 
     val numberVerificationEndpoint: String
-        get() = "${OpenXpandDefaults.BASE_CAMARA_API_URL}/api/camara/number-verification/v0/verify"
+        get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/number-verification/v0/verify"
 }
