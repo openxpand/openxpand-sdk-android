@@ -205,7 +205,7 @@ Once you have the `access_token`, call `verifyNumber()`. The SDK runs two CAMARA
 ```kotlin
 import com.openxpand.sdk.NumberVerificationResult
 
-when (val result = auth.verifyNumber(accessToken, phoneNumber = "+5491112345678")) {
+when (val result = auth.verifyNumber(accessToken, phoneNumber = "+541198765432")) {
     is NumberVerificationResult.Success -> {
         if (result.verified) {
             // Phone number confirmed — authentication complete

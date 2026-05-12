@@ -40,7 +40,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"swapped":true}"""))
 
-        assertTrue(client.checkSimSwap("token", "+5491112345678"))
+        assertTrue(client.checkSimSwap("token", "+541198765432"))
     }
 
     @Test
@@ -49,7 +49,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"swapped":false}"""))
 
-        assertFalse(client.checkSimSwap("token", "+5491112345678"))
+        assertFalse(client.checkSimSwap("token", "+541198765432"))
     }
 
     @Test
@@ -58,7 +58,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"swapped":false}"""))
 
-        client.checkSimSwap("my-token", "+5491112345678")
+        client.checkSimSwap("my-token", "+541198765432")
 
         assertEquals("Bearer my-token", mockServer.takeRequest().getHeader("Authorization"))
     }
@@ -69,9 +69,9 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"swapped":false}"""))
 
-        client.checkSimSwap("token", "+5491112345678")
+        client.checkSimSwap("token", "+541198765432")
 
-        assertTrue(mockServer.takeRequest().body.readUtf8().contains("+5491112345678"))
+        assertTrue(mockServer.takeRequest().body.readUtf8().contains("+541198765432"))
     }
 
     @Test
@@ -79,7 +79,7 @@ class CamaraApiClientTest {
         mockServer.enqueue(MockResponse().setResponseCode(401).setBody("Unauthorized"))
 
         try {
-            client.checkSimSwap("bad-token", "+5491112345678")
+            client.checkSimSwap("bad-token", "+541198765432")
             fail("Expected CamaraApiException")
         } catch (e: CamaraApiException) {
             assertTrue(e.message!!.contains("401"))
@@ -94,7 +94,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"devicePhoneNumberVerified":true}"""))
 
-        assertTrue(client.verifyNumber("token", "+5491112345678"))
+        assertTrue(client.verifyNumber("token", "+541198765432"))
     }
 
     @Test
@@ -103,7 +103,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"devicePhoneNumberVerified":false}"""))
 
-        assertFalse(client.verifyNumber("token", "+5491112345678"))
+        assertFalse(client.verifyNumber("token", "+541198765432"))
     }
 
     @Test
@@ -112,7 +112,7 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"devicePhoneNumberVerified":true}"""))
 
-        client.verifyNumber("my-token", "+5491112345678")
+        client.verifyNumber("my-token", "+541198765432")
 
         assertEquals("Bearer my-token", mockServer.takeRequest().getHeader("Authorization"))
     }
@@ -123,9 +123,9 @@ class CamaraApiClientTest {
             .setResponseCode(200)
             .setBody("""{"devicePhoneNumberVerified":true}"""))
 
-        client.verifyNumber("token", "+5491112345678")
+        client.verifyNumber("token", "+541198765432")
 
-        assertTrue(mockServer.takeRequest().body.readUtf8().contains("+5491112345678"))
+        assertTrue(mockServer.takeRequest().body.readUtf8().contains("+541198765432"))
     }
 
     @Test
@@ -133,7 +133,7 @@ class CamaraApiClientTest {
         mockServer.enqueue(MockResponse().setResponseCode(403).setBody("Forbidden"))
 
         try {
-            client.verifyNumber("token", "+5491112345678")
+            client.verifyNumber("token", "+541198765432")
             fail("Expected CamaraApiException")
         } catch (e: CamaraApiException) {
             assertTrue(e.message!!.contains("403"))

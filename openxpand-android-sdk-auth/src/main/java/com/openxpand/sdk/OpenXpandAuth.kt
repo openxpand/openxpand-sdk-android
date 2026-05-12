@@ -119,7 +119,9 @@ class OpenXpandAuth(
      * to confirm the phone number via the Number Verification API.
      *
      * @param accessToken Bearer token obtained from [authenticate] or your own token exchange.
-     * @param phoneNumber Phone number to verify (E.164 format recommended, e.g. "+5491112345678").
+     * @param phoneNumber Phone number to verify, E.164 format recommended **without the
+     *                    mobile `9` prefix for Argentine numbers** (e.g. `"+541198765432"`,
+     *                    not `"+5491198765432"`). The CAMARA backend rejects the mobile-prefixed form.
      */
     suspend fun verifyNumber(accessToken: String, phoneNumber: String): NumberVerificationResult {
         return try {
