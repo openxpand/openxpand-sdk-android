@@ -66,6 +66,7 @@ val config = OpenXpandConfig(
 |-----------|---------|-------------|
 | `clientSecret` | `""` | Only if the client is confidential and the token exchange runs in code that can safely use the secret. |
 | `baseGatewayUrl` | `https://opengw.openxpand.com` | Gateway base; used to document the **POST /token** path (`tokenEndpoint`). The **GET /auth** requests use fixed URLs defined in the SDK (`OpenXpandDefaults`). |
+| `onSecurityProviderStatus` | `null` | Optional callback notified when security provider update has warnings/errors (`UserActionRequired`, `NotAvailable`, `Error`). |
 
 ### Fixed SDK URLs (`OpenXpandDefaults`)
 
@@ -88,6 +89,37 @@ import com.openxpand.sdk.OpenXpandAuth
 val auth = OpenXpandAuth(
     context = applicationContext,
     config = config
+)
+```
+
+During initialization and before HTTPS calls, the SDK updates the device security provider through
+Google Play services (`ProviderInstaller.installIfNeeded()`) on a background thread.
+If the provider cannot be updated, the SDK notifies the host app through
+`OpenXpandConfig.onSecurityProviderStatus`, but requests are not blocked.
+
+You can handle provider warnings from your app like this:
+
+```kotlin
+import com.openxpand.sdk.SecurityProviderStatus
+
+val config = OpenXpandConfig(
+    clientId = "my-client-id",
+    tenant = "my-tenant",
+    redirectUri = "https://my-app.com/callback",
+    onSecurityProviderStatus = { status ->
+        when (status) {
+            is SecurityProviderStatus.UserActionRequired -> {
+                // Prompt user to update/enable Google Play services.
+            }
+            is SecurityProviderStatus.NotAvailable -> {
+                // Decide your policy for potentially vulnerable transport.
+            }
+            is SecurityProviderStatus.Error -> {
+                // Observe unexpected provider check failures.
+            }
+            is SecurityProviderStatus.UpToDate -> Unit
+        }
+    }
 )
 ```
 
@@ -259,6 +291,12 @@ when (val result = auth.verifyNumber(accessToken, phoneNumber = "+541198765432")
 - `Success(accessToken: String, tokenType: String, expiresIn: Long, refreshToken: String?)`
 - `Error(message: String, cause: Throwable?)`
 
+**`SecurityProviderStatus`** (provider warning callback via `OpenXpandConfig`):
+- `UpToDate`
+- `UserActionRequired(statusCode: Int)`
+- `NotAvailable(statusCode: Int)`
+- `Error(message: String, cause: Throwable?)`
+
 #### CAMARA verification
 
 | Method | Returns | Description |
@@ -295,4 +333,5 @@ The SDK includes a `network_security_config.xml` that allows cleartext (HTTP) tr
 | Library | Version | Usage |
 |---------|---------|-------|
 | OkHttp | 4.12.0 | HTTP client |
+| Google Play services Base | 18.10.0 | Security provider updates (`ProviderInstaller`) |
 | Kotlin Coroutines Android | 1.7.3 | Async/suspend |
