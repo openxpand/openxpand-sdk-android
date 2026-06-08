@@ -36,7 +36,12 @@ data class OpenXpandConfig(
      * longer than 10 s to wake from idle when WiFi is active.
      * Increase to 20 000–30 000 on affected devices.
      */
-    val cellularNetworkTimeoutMs: Int = 20_000
+    val cellularNetworkTimeoutMs: Int = 20_000,
+    /**
+     * Optional callback to notify the host app when the Google Play security provider
+     * cannot be updated or validated. SDK operations continue running normally.
+     */
+    val onSecurityProviderStatus: ((SecurityProviderStatus) -> Unit)? = null
 ) {
     val authEndpoint: String
         get() =
