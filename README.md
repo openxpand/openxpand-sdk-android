@@ -285,6 +285,30 @@ The SDK declares the following permissions in its manifest (merged automatically
 - `INTERNET` — for HTTP/HTTPS requests.
 - `ACCESS_NETWORK_STATE` — to detect the network type (WiFi/mobile).
 - `CHANGE_NETWORK_STATE` — to force requests through the cellular network.
+- `READ_PHONE_STATE` — to read the IMSI for the TS.43 EAP identity. On current Android versions the USIM authentication also requires carrier privileges (the app certificate hash on the SIM).
+
+## TS.43 temporary token
+
+`OpenXpandEntitlement` runs GSMA TS.43 ap2014 `AcquireTemporaryToken` against an entitlement server. It returns an opaque token and an expiry. The token does not contain the phone number; the app backend redeems it.
+
+The hosting app must be carrier-privileged on the SIM. Without that, `TelephonyManager.getIccAuthentication` fails.
+
+```kotlin
+val entitlement = OpenXpandEntitlement(
+    context = applicationContext,
+    config = EntitlementConfig(
+        entitlementServerUrl = "http://aes.example/entitlement"
+    )
+)
+when (val result = entitlement.acquireTemporaryToken()) {
+    is TemporaryTokenResult.Success -> result.token
+    is TemporaryTokenResult.Error -> result.message
+}
+```
+
+`EntitlementConfig.mcc` / `mnc` default to `722` / `34`. `forceCellular` defaults to `true`; set it to `false` when the entitlement server is reached over Wi-Fi or an emulator route.
+
+The lab entitlement server is plain HTTP on a host outside `*.openxpand.com`. The SDK cleartext rule does not cover that host, so the app must allow cleartext to it. The EAP session token is sent in the POST body because a `Secure` cookie is not stored on `http`.
 
 ## Network security
 
