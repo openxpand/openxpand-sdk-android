@@ -4,10 +4,15 @@ import android.content.Context
 import com.openxpand.sdk.cellular.CellularRequestManager
 import com.openxpand.sdk.pkce.PkceGenerator
 import com.openxpand.sdk.internal.SdkHttpClient
+import com.openxpand.sdk.internal.SecurityProviderUpdater
 import com.openxpand.sdk.silent.SilentLoginManager
 import com.openxpand.sdk.camara.CamaraApiClient
 import com.openxpand.sdk.token.TokenExchanger
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class OpenXpandAuth(
     private val context: Context,
@@ -18,6 +23,16 @@ class OpenXpandAuth(
     private val cellularRequestManager = CellularRequestManager(context, config)
     private val tokenExchanger = TokenExchanger(config)
     private val camaraApiClient = CamaraApiClient(config)
+    private val securityProviderScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    init {
+        securityProviderScope.launch {
+            val providerStatus = prepareSecurityProvider()
+            if (providerStatus != null) {
+                notifySecurityProviderStatus(providerStatus)
+            }
+        }
+    }
 
     // ──────────────────────────────────────────────────────────────
     //  Authorization-only methods (return code + verifier)
@@ -161,6 +176,28 @@ class OpenXpandAuth(
             throw e
         } catch (e: Exception) {
             DevicePhoneNumberResult.Error("Device phone number request failed: ${e.message}", e)
+        }
+    }
+
+    private suspend fun prepareSecurityProvider(): SecurityProviderStatus? {
+        return when (val status = SecurityProviderUpdater.ensureUpToDate(context)) {
+            is SecurityProviderUpdater.InstallStatus.Installed -> SecurityProviderStatus.UpToDate
+            is SecurityProviderUpdater.InstallStatus.RepairableFailure ->
+                SecurityProviderStatus.UserActionRequired(status.connectionStatusCode)
+            is SecurityProviderUpdater.InstallStatus.NotAvailableFailure ->
+                SecurityProviderStatus.NotAvailable(status.errorCode)
+            is SecurityProviderUpdater.InstallStatus.NotAttempted ->
+                SecurityProviderStatus.Error("Security provider update has not been attempted yet.")
+        }.let { resolved ->
+            if (resolved is SecurityProviderStatus.UpToDate) null else resolved
+        }
+    }
+
+    private fun notifySecurityProviderStatus(status: SecurityProviderStatus) {
+        try {
+            config.onSecurityProviderStatus?.invoke(status)
+        } catch (_: Throwable) {
+            // Host callback failures must never break SDK behavior.
         }
     }
 

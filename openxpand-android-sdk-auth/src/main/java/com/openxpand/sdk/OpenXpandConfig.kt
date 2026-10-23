@@ -55,7 +55,12 @@ data class OpenXpandConfig(
      * Empty keeps the SDK defaults: the dpv scopes, plus the two CAMARA
      * operation scopes when the request carries an operator-token login hint.
      */
-    val authorizeScopes: String = ""
+    val authorizeScopes: String = "",
+    /**
+     * Optional callback to notify the host app when the Google Play security provider
+     * cannot be updated or validated. SDK operations continue running normally.
+     */
+    val onSecurityProviderStatus: ((SecurityProviderStatus) -> Unit)? = null
 ) {
     val authEndpoint: String
         get() = "${realmRoot(baseAuthUrl)}/auth"
