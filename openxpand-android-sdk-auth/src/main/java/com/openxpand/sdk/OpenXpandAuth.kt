@@ -7,6 +7,7 @@ import com.openxpand.sdk.internal.SdkHttpClient
 import com.openxpand.sdk.silent.SilentLoginManager
 import com.openxpand.sdk.camara.CamaraApiClient
 import com.openxpand.sdk.token.TokenExchanger
+import kotlinx.coroutines.CancellationException
 
 class OpenXpandAuth(
     private val context: Context,
@@ -132,6 +133,34 @@ class OpenXpandAuth(
             NumberVerificationResult.Success(verified)
         } catch (e: Exception) {
             NumberVerificationResult.Error("Number verification failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * CAMARA Number Verification v2 verify. Compares [phoneNumber] with the MSISDN in the
+     * access token and does not call SIM Swap.
+     */
+    suspend fun verifyDevicePhoneNumber(accessToken: String, phoneNumber: String): NumberVerificationResult {
+        return try {
+            NumberVerificationResult.Success(camaraApiClient.verifyNumber(accessToken, phoneNumber))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            NumberVerificationResult.Error("Number verification failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * CAMARA Number Verification v2 device-phone-number. Returns the MSISDN associated
+     * with the access token.
+     */
+    suspend fun devicePhoneNumber(accessToken: String): DevicePhoneNumberResult {
+        return try {
+            DevicePhoneNumberResult.Success(camaraApiClient.devicePhoneNumber(accessToken))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            DevicePhoneNumberResult.Error("Device phone number request failed: ${e.message}", e)
         }
     }
 

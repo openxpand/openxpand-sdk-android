@@ -139,4 +139,18 @@ class CamaraApiClientTest {
             assertTrue(e.message!!.contains("403"))
         }
     }
+
+    @Test
+    fun `devicePhoneNumber returns the MSISDN from a GET`() = runTest {
+        mockServer.enqueue(MockResponse()
+            .setResponseCode(200)
+            .setBody("""{"devicePhoneNumber":"+541179999999"}"""))
+
+        assertEquals("+541179999999", client.devicePhoneNumber("my-token"))
+
+        val request = mockServer.takeRequest()
+        assertEquals("GET", request.method)
+        assertEquals("Bearer my-token", request.getHeader("Authorization"))
+        assertTrue(request.path!!.endsWith("/api/camara/number-verification/v2/device-phone-number"))
+    }
 }

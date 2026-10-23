@@ -6,6 +6,7 @@
 -keep class com.openxpand.sdk.AuthorizationResult { *; }
 -keep class com.openxpand.sdk.AuthorizationResult$* { *; }
 -keep class com.openxpand.sdk.OpenXpandEntitlement { *; }
+-keep class com.openxpand.sdk.LabUsim { *; }
 -keep class com.openxpand.sdk.EntitlementConfig { *; }
 -keep class com.openxpand.sdk.TemporaryTokenResult { *; }
 -keep class com.openxpand.sdk.TemporaryTokenResult$* { *; }

@@ -59,6 +59,26 @@ internal class CamaraApiClient(private val config: OpenXpandConfig) {
 
             JSONObject(responseBody).getBoolean("devicePhoneNumberVerified")
         }
+
+    suspend fun devicePhoneNumber(accessToken: String): String =
+        withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url(config.devicePhoneNumberEndpoint)
+                .get()
+                .header("Authorization", "Bearer $accessToken")
+                .build()
+
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string() ?: ""
+
+            if (!response.isSuccessful) {
+                throw CamaraApiException(
+                    "Device phone number request failed: HTTP ${response.code}. $responseBody"
+                )
+            }
+
+            JSONObject(responseBody).getString("devicePhoneNumber")
+        }
 }
 
 class CamaraApiException(message: String, cause: Throwable? = null) : Exception(message, cause)

@@ -69,7 +69,7 @@ class OpenXpandConfigTest {
     @Test
     fun `numberVerificationEndpoint uses default CAMARA base URL`() {
         assertEquals(
-            "https://api.openxpand.com/api/camara/number-verification/v0/verify",
+            "https://api.openxpand.com/api/camara/number-verification/v2/verify",
             config.numberVerificationEndpoint
         )
     }
@@ -87,7 +87,7 @@ class OpenXpandConfigTest {
     fun `numberVerificationEndpoint strips trailing slash from baseCamaraApiUrl`() {
         val custom = config.copy(baseCamaraApiUrl = "https://api.openxpand.com/")
         assertEquals(
-            "https://api.openxpand.com/api/camara/number-verification/v0/verify",
+            "https://api.openxpand.com/api/camara/number-verification/v2/verify",
             custom.numberVerificationEndpoint
         )
     }
@@ -102,6 +102,52 @@ class OpenXpandConfigTest {
         assertEquals(
             "https://opengw.openxpand.com/auth/realms/telecom/protocol/openid-connect/token",
             other.tokenEndpoint
+        )
+    }
+
+    @Test
+    fun `local keycloak uses configurable hosts without the legacy auth prefix`() {
+        val local = config.copy(
+            baseAuthUrl = "http://10.0.2.2:8080",
+            baseCellularAuthUrl = "http://10.0.2.2:8080",
+            baseGatewayUrl = "http://10.0.2.2:8080/",
+            includeLegacyAuthPrefix = false
+        )
+        assertEquals(
+            "http://10.0.2.2:8080/realms/acme/protocol/openid-connect/auth",
+            local.authEndpoint
+        )
+        assertEquals(
+            "http://10.0.2.2:8080/realms/acme/protocol/openid-connect/auth",
+            local.cellularAuthEndpoint
+        )
+        assertEquals(
+            "http://10.0.2.2:8080/realms/acme/protocol/openid-connect/token",
+            local.tokenEndpoint
+        )
+    }
+
+    @Test
+    fun `openId4VpBaseUrl uses gateway host and tenant without legacy auth prefix`() {
+        val local = config.copy(
+            baseGatewayUrl = "http://10.0.2.2:8080",
+            includeLegacyAuthPrefix = false
+        )
+        assertEquals(
+            "http://10.0.2.2:8080/realms/acme/openid4vp",
+            local.openId4VpBaseUrl
+        )
+        assertEquals(
+            "http://10.0.2.2:8080/realms/acme/openid4vp/token",
+            local.openId4VpTokenUrl
+        )
+    }
+
+    @Test
+    fun `devicePhoneNumberEndpoint uses the v2 share path`() {
+        assertEquals(
+            "https://api.openxpand.com/api/camara/number-verification/v2/device-phone-number",
+            config.devicePhoneNumberEndpoint
         )
     }
 }

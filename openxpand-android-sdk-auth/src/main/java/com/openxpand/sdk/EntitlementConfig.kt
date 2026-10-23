@@ -21,6 +21,11 @@ data class EntitlementConfig(
     val entitlementServerUrl: String,
     val mcc: String = "722",
     val mnc: String = "34",
+    /** SHA-256 fingerprints (hex) of aggregator root certificates trusted for OpenID4VP. */
+    val allowedAggregatorRootFingerprints: Set<String> =
+        com.openxpand.sdk.entitlement.LabOperatorTokenDefaults.AGGREGATOR_ROOT_FINGERPRINTS,
+    val apkAudience: String = com.openxpand.sdk.entitlement.LabOperatorTokenDefaults.APK_AUDIENCE,
+    val androidCarrierHint: Int = com.openxpand.sdk.entitlement.LabOperatorTokenDefaults.LAB_ANDROID_CARRIER_ID,
     val entitlementVersion: String = "12.0",
     val terminalVendor: String = "Google",
     val terminalModel: String = "Android",

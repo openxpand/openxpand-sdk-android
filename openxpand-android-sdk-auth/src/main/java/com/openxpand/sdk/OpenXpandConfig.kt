@@ -1,9 +1,8 @@
 package com.openxpand.sdk
 
 /**
- * Fixed product URLs for GET /auth requests (IP+port HTTPS and cellular HTTP).
- * Not configurable by the integrating app; the gateway for POST /token is set via
- * [OpenXpandConfig.baseGatewayUrl].
+ * Product URL defaults. [OpenXpandConfig] can override the auth hosts and drop the
+ * legacy `/auth` path prefix used by older Keycloak deployments.
  */
 object OpenXpandDefaults {
     const val BASE_AUTH_HTTPS_URL = "https://auth.openxpand.com"
@@ -21,8 +20,22 @@ data class OpenXpandConfig(
      */
     val clientSecret: String = "",
     /**
-     * Gateway base URL (e.g. for token exchange). Authorization GET requests use
-     * the fixed URLs in [OpenXpandDefaults] (auth HTTPS and cellular HTTP).
+     * Host for the authorization GET (IP + port). Local Keycloak is
+     * `http://10.0.2.2:8080` from the emulator.
+     */
+    val baseAuthUrl: String = OpenXpandDefaults.BASE_AUTH_HTTPS_URL,
+    /**
+     * Host for the cellular authorization GET.
+     */
+    val baseCellularAuthUrl: String = OpenXpandDefaults.BASE_CELLULAR_HTTP_URL,
+    /**
+     * When true, realm paths keep the legacy `/auth` prefix
+     * (`/auth/realms/{tenant}/...`). Keycloak 25 local realms omit it.
+     */
+    val includeLegacyAuthPrefix: Boolean = true,
+    /**
+     * Gateway base URL (e.g. for token exchange). With [includeLegacyAuthPrefix]
+     * false this is the Keycloak host, such as `http://10.0.2.2:8080`.
      */
     val baseGatewayUrl: String = "https://opengw.openxpand.com",
     /**
@@ -36,22 +49,44 @@ data class OpenXpandConfig(
      * longer than 10 s to wake from idle when WiFi is active.
      * Increase to 20 000–30 000 on affected devices.
      */
-    val cellularNetworkTimeoutMs: Int = 20_000
+    val cellularNetworkTimeoutMs: Int = 20_000,
+    /**
+     * Space-separated scopes for the authorize request.
+     * Empty keeps the SDK defaults: the dpv scopes, plus the two CAMARA
+     * operation scopes when the request carries an operator-token login hint.
+     */
+    val authorizeScopes: String = ""
 ) {
     val authEndpoint: String
-        get() =
-            "${OpenXpandDefaults.BASE_AUTH_HTTPS_URL}/auth/realms/$tenant/protocol/openid-connect/auth"
+        get() = "${realmRoot(baseAuthUrl)}/auth"
 
     val cellularAuthEndpoint: String
-        get() =
-            "${OpenXpandDefaults.BASE_CELLULAR_HTTP_URL}/auth/realms/$tenant/protocol/openid-connect/auth"
+        get() = "${realmRoot(baseCellularAuthUrl)}/auth"
 
     val tokenEndpoint: String
-        get() = "${baseGatewayUrl.trimEnd('/')}/auth/realms/$tenant/protocol/openid-connect/token"
+        get() = "${realmRoot(baseGatewayUrl)}/token"
+
+    /** Keycloak OpenID4VP aggregator base (`/realms/{tenant}/openid4vp`). */
+    val openId4VpBaseUrl: String
+        get() {
+            val prefix = if (includeLegacyAuthPrefix) "/auth" else ""
+            return "${baseGatewayUrl.trimEnd('/')}$prefix/realms/$tenant/openid4vp"
+        }
+
+    val openId4VpTokenUrl: String
+        get() = "$openId4VpBaseUrl/token"
+
+    private fun realmRoot(host: String): String {
+        val prefix = if (includeLegacyAuthPrefix) "/auth" else ""
+        return "${host.trimEnd('/')}$prefix/realms/$tenant/protocol/openid-connect"
+    }
 
     val simSwapEndpoint: String
         get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/sim-swap/v0/check"
 
     val numberVerificationEndpoint: String
-        get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/number-verification/v0/verify"
+        get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/number-verification/v2/verify"
+
+    val devicePhoneNumberEndpoint: String
+        get() = "${baseCamaraApiUrl.trimEnd('/')}/api/camara/number-verification/v2/device-phone-number"
 }
